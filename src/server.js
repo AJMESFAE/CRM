@@ -21,7 +21,7 @@ if (!db.get('SELECT 1 FROM usuarios LIMIT 1')) {
     console.error('Error: base de datos vacía. Define ADMIN_EMAIL y ADMIN_PASSWORD para crear el usuario de Dirección.');
     process.exit(1);
   }
-  const email = process.env.ADMIN_EMAIL || 'direccion@colegio.local';
+  const email = process.env.ADMIN_EMAIL || 'direccion@colegio.mezquitacentral.org';
   const password = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString('base64url');
   db.run(
     "INSERT INTO usuarios (email, password_hash, rol, nombre, apellidos, cargo) VALUES (?, ?, 'direccion', 'Administrador', 'Dirección', 'Director/a')",

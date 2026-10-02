@@ -46,7 +46,14 @@ Copia manual de la base de datos: `npm run backup`. Comprobación de estado: `GE
 
 ## Despliegue en Azure
 
-La aplicación está preparada para **Azure App Service (Linux)** con infraestructura como código (`infra/main.bicep`) y despliegue continuo con GitHub Actions (`.github/workflows/ci-cd.yml`). Consulta **[docs/despliegue-azure.md](docs/despliegue-azure.md)** para el análisis de viabilidad, costes, copias de seguridad, RGPD y los pasos de despliegue.
+Mismo esquema que Villa del Casar y la tienda de la Fundación: Web App Linux con Node 22, arrancada con `startup.sh`, y la base de datos en el almacenamiento persistente de App Service. Desde Azure Cloud Shell:
+
+```bash
+./infra/deploy.sh                                  # plan propio
+SHARE_PLAN_WITH_APP=villadelcasar ./infra/deploy.sh  # o compartiendo el plan de Villa del Casar
+```
+
+El usuario principal es **`direccion@colegio.mezquitacentral.org`**. Su contraseña inicial se genera y se muestra al final del despliegue. Después, cada push a `main` despliega automáticamente con GitHub Actions. Consulta **[docs/despliegue-azure.md](docs/despliegue-azure.md)** para el dominio propio, las copias de seguridad, el diagnóstico y el RGPD.
 
 ## Perfiles y permisos
 
@@ -119,7 +126,9 @@ views/               plantillas EJS
 public/              CSS y JS del cliente
   backup.js          copias de seguridad consistentes (VACUUM INTO)
 test/                tests de integración (node:test + supertest)
-infra/               infraestructura de Azure (Bicep)
+infra/               despliegue en Azure: deploy.sh, main.bicep y scripts auxiliares
+scripts/             build-package.sh (paquete para App Service)
+startup.sh           comando de arranque en App Service
 docs/                documentación de despliegue
 .github/workflows/   CI y despliegue continuo
 ```
