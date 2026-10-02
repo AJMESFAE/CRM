@@ -35,7 +35,7 @@ El CRM se despliega igual que **Villa del Casar** y la **tienda de la Fundación
 2. Clona el repositorio y ejecuta el script:
 
    ```bash
-   git clone https://github.com/sinanod/CRM.git && cd CRM
+   git clone https://github.com/AJMESFAE/CRM.git && cd CRM
    ./infra/deploy.sh
    ```
 

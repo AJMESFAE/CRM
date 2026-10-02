@@ -31,7 +31,7 @@ param adminPassword string
 param sessionSecret string
 
 @description('Repositorio de GitHub (propietario/repo) que despliega por OIDC, sin contraseñas. Vacío = no crear la identidad.')
-param repositorioGithub string = 'sinanod/CRM'
+param repositorioGithub string = 'AJMESFAE/CRM'
 @description('Entorno de GitHub Actions autorizado a desplegar')
 param entornoGithub string = 'production'
 

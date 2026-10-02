@@ -25,11 +25,13 @@
 #      ADMIN_EMAIL      (direccion@colegio.mezquitacentral.org)
 #      ALERT_EMAIL      (= ADMIN_EMAIL; vacío para no recibir avisos)
 #      CUSTOM_DOMAIN    dominio propio que se vinculará con bind-domain.sh
-#      GITHUB_REPO      (sinanod/CRM) repositorio que despliega por OIDC
+#      GITHUB_REPO      (AJMESFAE/CRM) repositorio que despliega por OIDC
 #      DEPLOY_CODE      true/false: subir el código desde aquí (por defecto,
 #                       false si GitHub Actions ya está configurado para la app)
 # =============================================================================
 set -euo pipefail
+# Nunca terminar en silencio: si algo falla, decir dónde
+trap 'printf "\n\033[1;31mERROR: deploy.sh se ha detenido en la línea %s (código %s). Puede volver a ejecutarlo: reutiliza lo ya creado.\033[0m\n" "$LINENO" "$?" >&2' ERR
 
 cd "$(dirname "$0")/.."
 STATE_FILE="infra/.deploy.env"   # contraseñas generadas (no se sube a git)
@@ -54,7 +56,7 @@ ADMIN_EMAIL="${ADMIN_EMAIL:-direccion@colegio.mezquitacentral.org}"
 ALERT_EMAIL="${ALERT_EMAIL-$ADMIN_EMAIL}"
 CUSTOM_DOMAIN="${CUSTOM_DOMAIN:-}"
 SHARE_PLAN_WITH_APP="${SHARE_PLAN_WITH_APP:-}"
-GITHUB_REPO="${GITHUB_REPO:-sinanod/CRM}"
+GITHUB_REPO="${GITHUB_REPO:-AJMESFAE/CRM}"
 
 genpass() { # $1 caracteres: letras y números, más "A9" para cumplir cualquier política
   echo "$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c "${1:-22}")A9"

@@ -5,6 +5,8 @@
 # Uso: scripts/build-package.sh [ruta-del-zip]      (por defecto: crm.zip)
 # Trabaja en una copia temporal: no toca el node_modules de su carpeta.
 set -euo pipefail
+# Nunca terminar en silencio: si algo falla, decir dónde
+trap 'echo "== ERROR: build-package.sh ha fallado en la línea $LINENO (código $?)" >&2' ERR
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 OUT="${1:-$ROOT/crm.zip}"
@@ -31,7 +33,8 @@ if ! npm test > "$WORK/pruebas.log" 2>&1; then
   echo "== ERROR: las pruebas fallan; no se genera el paquete."
   exit 1
 fi
-grep -E '^# (pass|fail)' "$WORK/pruebas.log"
+# Node 22 resume con "# pass N" y Node 24 con "ℹ pass N"
+grep -E '^(# |ℹ )(pass|fail) ' "$WORK/pruebas.log" || echo "Pruebas superadas"
 echo "== Quitando dependencias de desarrollo"
 npm prune --omit=dev --no-audit --no-fund
 
