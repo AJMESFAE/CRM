@@ -1,0 +1,56 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><div><h1>Calificaciones</h1><p class="muted">Registra exámenes, trabajos y notas finales por asignatura y trimestre</p></div></div>
+<form class="filtros" method="get">
+  <label>Clase y asignatura <select name="asignacion" required><option value="">Selecciona…</option>
+    <% asignaciones.forEach(x => { %><option value="<%= x.id %>" <%= ca && ca.id === x.id ? 'selected' : '' %>><%= x.clase %> · <%= x.asignatura %><%= user.rol === 'direccion' && x.profesor ? ' (' + x.profesor + ')' : '' %></option><% }) %></select></label>
+  <label>Trimestre <select name="trimestre"><% [1, 2, 3].forEach(t => { %><option value="<%= t %>" <%= trimestre === t ? 'selected' : '' %>><%= t %>º trimestre</option><% }) %></select></label>
+  <button class="btn">Ver</button>
+</form>
+<% if (!asignaciones.length) { %><div class="aviso aviso-info">No tienes asignaturas asignadas.</div><% } %>
+<% if (ca) { %>
+<section class="tarjeta">
+  <h2><%= ca.clase %> · <%= ca.asignatura %> · <%= trimestre %>º trimestre</h2>
+  <% if (!filas.length) { %><p class="vacio">No hay alumnos en esta clase.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Alumno</th>
+      <% evaluaciones.forEach((e, i) => { %><th class="num" title="<%= h.TIPOS_NOTA[e.tipo] %> · <%= h.fecha(e.fecha) %> · peso <%= e.peso %>">
+        <a href="?asignacion=<%= ca.id %>&trimestre=<%= trimestre %>&editar=<%= i %>#evaluacion"><%= e.descripcion %></a><br><small><%= h.fecha(e.fecha) %> · ×<%= e.peso %></small></th><% }) %>
+      <th class="num">Media</th><th class="num">Final</th></tr></thead>
+    <tbody><% filas.forEach(f => { %>
+      <tr><td><a href="/alumnos/<%= f.id %>?tab=notas"><%= f.apellidos %>, <%= f.nombre %></a></td>
+        <% f.celdas.forEach(n => { %><td class="num <%= n ? h.claseNota(n.nota) : '' %>" title="<%= n && n.comentario ? n.comentario : '' %>"><%= n ? h.formatoNota(n.nota) : '—' %></td><% }) %>
+        <td class="num <%= h.claseNota(f.media) %>"><%= h.formatoNota(f.media) %></td>
+        <td class="num <%= h.claseNota(f.final) %>"><%= h.formatoNota(f.final) %></td></tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+</section>
+
+<% if (filas.length) { const e = editar; %>
+<section class="tarjeta" id="evaluacion">
+  <h2><%= e ? 'Editar evaluación: ' + e.descripcion : 'Nueva evaluación' %></h2>
+  <form method="post" action="/notas" class="form">
+    <%- include('../partials/csrf') %>
+    <input type="hidden" name="asignacion" value="<%= ca.id %>"><input type="hidden" name="trimestre" value="<%= trimestre %>">
+    <% if (e) { %><input type="hidden" name="original" value="<%= e.clave %>"><% } %>
+    <div class="fila">
+      <label>Tipo <select name="tipo"><% Object.entries(TIPOS_NOTA).forEach(([k, l]) => { %><option value="<%= k %>" <%= e && e.tipo === k ? 'selected' : '' %>><%= l %></option><% }) %></select></label>
+      <label>Descripción <input name="descripcion" required maxlength="120" value="<%= e ? e.descripcion : '' %>" placeholder="Examen tema 2"></label>
+      <label>Fecha <input type="date" name="fecha" required value="<%= e ? e.fecha : fechaHoy %>"></label>
+      <label>Peso <input type="number" name="peso" step="0.1" min="0.1" max="10" value="<%= e ? e.peso : 1 %>"></label>
+    </div>
+    <div class="tabla-wrap"><table>
+      <thead><tr><th>Alumno</th><th>Nota (0-10)</th><th>Comentario</th></tr></thead>
+      <tbody><% alumnos.forEach(a => { const n = valores[a.id]; %>
+        <tr><td><%= a.apellidos %>, <%= a.nombre %></td>
+          <td><input class="input-nota" name="nota_<%= a.id %>" inputmode="decimal" pattern="(10([.,]0+)?|[0-9]([.,][0-9]{1,2})?)" value="<%= n ? String(n.nota).replace('.', ',') : '' %>"></td>
+          <td><input name="comentario_<%= a.id %>" maxlength="300" value="<%= n && n.comentario ? n.comentario : '' %>"></td></tr>
+      <% }) %></tbody>
+    </table></div>
+    <p class="muted">Deja una nota vacía para no calificar (o eliminar la nota al editar). La «Nota final» sustituye a la media del trimestre en el boletín.</p>
+    <div class="acciones"><button class="btn btn-primario">Guardar notas</button><% if (e) { %><a class="btn" href="?asignacion=<%= ca.id %>&trimestre=<%= trimestre %>">Cancelar edición</a><% } %></div>
+  </form>
+</section>
+<% } %>
+<% } %>
+<%- include('../partials/foot') %>

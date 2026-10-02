@@ -1,0 +1,49 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><div><h1>Informes</h1><p class="muted">Indicadores de asistencia y rendimiento del centro</p></div>
+  <div class="acciones"><a class="btn" href="/informes/actividad">Registro de actividad</a><a class="btn" href="/alumnos/exportar.csv">Exportar alumnos (CSV)</a><button class="btn" data-imprimir>Imprimir</button></div></div>
+<form class="filtros" method="get">
+  <label>Desde <input type="date" name="desde" value="<%= desde %>"></label>
+  <label>Hasta <input type="date" name="hasta" value="<%= hasta %>"></label>
+  <button class="btn">Aplicar</button>
+</form>
+
+<section class="tarjeta">
+  <h2>Por clase</h2>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Clase</th><th>Tutor/a</th><th class="num">Alumnos</th><th>Asistencia</th><th class="num">Faltas</th><th class="num">Nota media</th></tr></thead>
+    <tbody><% porClase.forEach(c => { const p = c.registros ? 100 * c.asistidos / c.registros : null; %>
+      <tr><td><a href="/clases/<%= c.id %>"><%= c.nombre %></a></td><td><%= c.tutor_nombre ? c.tutor_nombre + ' ' + c.tutor_apellidos : '—' %></td>
+        <td class="num"><%= c.alumnos %></td>
+        <td><% if (p !== null) { %><div class="barra <%= p < 85 ? 'baja' : '' %>"><span class="w-<%= Math.round(p / 5) * 5 %>"></span></div><small><%= h.porcentaje(p) %></small><% } else { %>—<% } %></td>
+        <td class="num"><%= c.faltas %></td><td class="num <%= h.claseNota(c.media) %>"><%= h.formatoNota(c.media) %></td></tr>
+    <% }) %></tbody>
+  </table></div>
+</section>
+
+<div class="rejilla-2">
+  <section class="tarjeta">
+    <h2>Por asignatura</h2>
+    <% if (!porAsignatura.length) { %><p class="vacio">Sin calificaciones en el periodo.</p><% } else { %>
+    <table><thead><tr><th>Asignatura</th><th class="num">Notas</th><th class="num">Media</th><th class="num">% suspensos</th></tr></thead>
+      <tbody><% porAsignatura.forEach(s => { %><tr><td><%= s.nombre %></td><td class="num"><%= s.num %></td><td class="num <%= h.claseNota(s.media) %>"><%= h.formatoNota(s.media) %></td><td class="num"><%= h.porcentaje(100 * s.suspensos / s.num) %></td></tr><% }) %></tbody></table>
+    <% } %>
+  </section>
+  <section class="tarjeta">
+    <h2>Anotaciones de seguimiento</h2>
+    <% if (!seguimientoPorTipo.length) { %><p class="vacio">Sin anotaciones en el periodo.</p><% } else { %>
+    <table><tbody><% seguimientoPorTipo.forEach(s => { %><tr><td><span class="tag tag-<%= s.tipo %>"><%= h.TIPOS_SEGUIMIENTO[s.tipo] %></span></td><td class="num"><%= s.n %></td></tr><% }) %></tbody></table>
+    <% } %>
+  </section>
+</div>
+
+<section class="tarjeta mt">
+  <h2>Alumnos que requieren atención</h2>
+  <p class="muted">Asistencia inferior al 85 % o media suspensa en dos o más asignaturas.</p>
+  <% if (!riesgo.length) { %><p class="vacio">Ningún alumno cumple estos criterios.</p><% } else { %>
+  <table><thead><tr><th>Alumno</th><th>Clase</th><th class="num">Asistencia</th><th class="num">Asignaturas suspensas</th></tr></thead>
+    <tbody><% riesgo.forEach(a => { %><tr><td><a href="/alumnos/<%= a.id %>"><%= a.apellidos %>, <%= a.nombre %></a></td><td><%= a.clase || '—' %></td>
+      <td class="num <%= a.porcentaje !== null && a.porcentaje < 85 ? 'nota-mal' : '' %>"><%= h.porcentaje(a.porcentaje) %></td>
+      <td class="num <%= a.suspensas >= 2 ? 'nota-mal' : '' %>"><%= a.suspensas %></td></tr><% }) %></tbody></table>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

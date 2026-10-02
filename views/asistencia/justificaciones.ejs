@@ -1,0 +1,18 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><div><h1>Justificaciones pendientes</h1><p class="muted">Motivos enviados por las familias desde su portal</p></div></div>
+<section class="tarjeta">
+  <% if (!pendientes.length) { %><p class="vacio">No hay justificaciones pendientes de revisar.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Alumno</th><th>Clase</th><th>Estado</th><th>Motivo de la familia</th><th></th></tr></thead>
+    <tbody><% pendientes.forEach(p => { %>
+      <tr><td><%= h.fecha(p.fecha) %></td><td><a href="/alumnos/<%= p.alumno_id %>?tab=asistencia"><%= p.apellidos %>, <%= p.nombre %></a></td><td><%= p.clase %></td>
+        <td><span class="tag tag-<%= p.estado %>"><%= h.ESTADOS_ASISTENCIA[p.estado] %></span></td>
+        <td>“<%= p.motivo_familia %>”<br><small><%= h.fechaHora(p.motivo_familia_en) %></small></td>
+        <td class="num"><form method="post" action="/asistencia/<%= p.id %>/revisar" class="acciones"><%- include('../partials/csrf') %>
+          <button class="btn btn-peq btn-ok" name="accion" value="aceptar">Aceptar</button>
+          <button class="btn btn-peq btn-peligro" name="accion" value="rechazar">Rechazar</button></form></td></tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

@@ -1,0 +1,53 @@
+<%- include('../partials/head') %>
+<% const u = usuario; %>
+<div class="cabecera">
+  <div><h1><%= u.nombre %> <%= u.apellidos %> <% if (!u.activo) { %><span class="tag tag-ausente">Inactivo</span><% } %></h1>
+    <p class="muted"><%= h.ROLES[u.rol] %><%= u.cargo ? ' · ' + u.cargo : '' %></p></div>
+  <div class="acciones">
+    <% if (u.id !== user.id) { %><a class="btn" href="/mensajes/nuevo?para=<%= u.id %>">Mensaje</a><% } %>
+    <a class="btn btn-primario" href="/usuarios/<%= u.id %>/editar">Editar</a>
+    <form method="post" action="/usuarios/<%= u.id %>/password" data-confirm="¿Generar una nueva contraseña temporal?"><%- include('../partials/csrf') %><button class="btn">Restablecer contraseña</button></form>
+    <% if (u.id !== user.id) { %>
+    <form method="post" action="/usuarios/<%= u.id %>/estado" data-confirm="<%= u.activo ? '¿Desactivar el acceso de este usuario?' : '¿Reactivar este usuario?' %>"><%- include('../partials/csrf') %>
+      <button class="btn <%= u.activo ? 'btn-peligro' : 'btn-ok' %>"><%= u.activo ? 'Desactivar' : 'Activar' %></button></form>
+    <% } %>
+  </div>
+</div>
+<div class="rejilla-2">
+  <section class="tarjeta">
+    <h2>Datos de contacto</h2>
+    <dl class="datos">
+      <dt>Email</dt><dd><a href="mailto:<%= u.email %>"><%= u.email %></a></dd>
+      <dt>Teléfono</dt><dd><%= u.telefono || '—' %><%= u.telefono_secundario ? ' / ' + u.telefono_secundario : '' %></dd>
+      <dt>DNI / NIE</dt><dd><%= u.dni || '—' %></dd>
+      <dt>Domicilio</dt><dd><%= [u.direccion, u.codigo_postal, u.localidad].filter(Boolean).join(', ') || '—' %></dd>
+      <% if (u.especialidad) { %><dt>Especialidad</dt><dd><%= u.especialidad %></dd><% } %>
+      <% if (u.profesion) { %><dt>Profesión</dt><dd><%= u.profesion %></dd><% } %>
+      <dt>Alta</dt><dd><%= h.fecha(u.creado_en) %></dd>
+      <dt>Último acceso</dt><dd><%= u.ultimo_acceso ? h.fechaHora(u.ultimo_acceso) : 'Nunca' %></dd>
+    </dl>
+  </section>
+  <section class="tarjeta">
+    <% if (u.rol === 'profesor') { %>
+      <h2>Tutoría</h2>
+      <% if (!tutorias.length) { %><p class="vacio">No es tutor/a de ningún grupo.</p><% } else { %>
+        <ul><% tutorias.forEach(c => { %><li><a href="/clases/<%= c.id %>"><%= c.nombre %></a> (<%= c.curso_academico %>)</li><% }) %></ul><% } %>
+      <h2 class="mt">Asignaturas que imparte</h2>
+      <% if (!imparte.length) { %><p class="vacio">Sin asignaturas.</p><% } else { %>
+        <table><tbody><% imparte.forEach(i => { %><tr><td><a href="/clases/<%= i.clase_id %>"><%= i.clase %></a></td><td><%= i.asignatura %></td><td class="num"><%= i.horas_semana ? i.horas_semana + ' h/sem' : '' %></td></tr><% }) %></tbody></table><% } %>
+    <% } else if (u.rol === 'tutor') { %>
+      <h2>Hijos / tutelados</h2>
+      <% if (!hijos.length) { %><p class="vacio">No tiene alumnos vinculados. Vincúlalo desde la ficha del alumno → «Familia y contactos».</p><% } else { %>
+        <table><tbody><% hijos.forEach(a => { %><tr><td><a href="/alumnos/<%= a.id %>"><%= a.nombre %> <%= a.apellidos %></a></td><td><%= a.clase || '—' %></td><td><%= a.parentesco %></td></tr><% }) %></tbody></table><% } %>
+    <% } else { %>
+      <h2>Equipo directivo</h2><p class="muted">Acceso completo a la gestión del centro.</p>
+    <% } %>
+  </section>
+</div>
+<section class="tarjeta mt">
+  <h2>Actividad reciente</h2>
+  <% if (!actividad.length) { %><p class="vacio">Sin actividad.</p><% } else { %>
+  <table><tbody><% actividad.forEach(r => { %><tr><td><small><%= h.fechaHora(r.creado_en) %></small></td><td><%= r.accion.replace(/_/g, ' ') %></td><td><%= r.entidad ? r.entidad + ' #' + r.entidad_id : '' %></td></tr><% }) %></tbody></table>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

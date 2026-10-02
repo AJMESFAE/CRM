@@ -1,0 +1,43 @@
+<%- include('../partials/head') %>
+<div class="cabecera">
+  <div><h1>Panel de Dirección</h1><p class="muted">Hoy es <%= h.fecha(h.hoy()) %> · Curso <%= h.cursoAcademicoActual() %></p></div>
+  <div class="acciones">
+    <a class="btn btn-primario" href="/alumnos/nuevo">+ Nuevo alumno</a>
+    <a class="btn" href="/usuarios/nuevo?rol=profesor">+ Nuevo profesor</a>
+    <a class="btn" href="/clases/nueva">+ Nueva clase</a>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="valor"><%= totales.alumnos %></div><div class="etiqueta">Alumnos activos</div></div>
+  <div class="kpi"><div class="valor"><%= totales.profesores %></div><div class="etiqueta">Profesores</div></div>
+  <div class="kpi"><div class="valor"><%= totales.familias %></div><div class="etiqueta">Padres / tutores</div></div>
+  <div class="kpi"><div class="valor"><%= totales.clases %></div><div class="etiqueta">Clases</div></div>
+  <div class="kpi <%= asistenciaHoy.faltas ? 'alerta' : '' %>"><div class="valor"><%= asistenciaHoy.faltas || 0 %></div><div class="etiqueta">Faltas hoy (<%= asistenciaHoy.retrasos || 0 %> retrasos)</div></div>
+  <a class="kpi <%= pendientes ? 'alerta' : '' %>" href="/asistencia/justificaciones"><div class="valor"><%= pendientes %></div><div class="etiqueta">Justificaciones por revisar</div></a>
+</div>
+
+<div class="rejilla">
+  <section class="tarjeta">
+    <h2>Clases sin lista pasada hoy</h2>
+    <% if (!clasesSinLista.length) { %><p class="vacio">Todas las clases tienen la asistencia registrada.</p><% } else { %>
+      <ul><% clasesSinLista.forEach(c => { %><li><a href="/asistencia?clase=<%= c.id %>"><%= c.nombre %></a></li><% }) %></ul>
+    <% } %>
+  </section>
+  <section class="tarjeta">
+    <h2>Más faltas (últimos 30 días)</h2>
+    <% if (!masFaltas.length) { %><p class="vacio">Sin faltas registradas.</p><% } else { %>
+      <table><tbody>
+        <% masFaltas.forEach(a => { %>
+          <tr><td><a href="/alumnos/<%= a.id %>?tab=asistencia"><%= a.apellidos %>, <%= a.nombre %></a><br><small><%= a.clase %></small></td><td class="num"><span class="tag tag-ausente"><%= a.faltas %> faltas</span></td></tr>
+        <% }) %>
+      </tbody></table>
+    <% } %>
+  </section>
+</div>
+
+<section class="tarjeta mt">
+  <div class="cabecera"><h2>Últimas anotaciones de seguimiento</h2><a href="/seguimiento">Ver todas</a></div>
+  <%- include('../seguimiento/_timeline', { anotaciones: ultimos, mostrarAlumno: true }) %>
+</section>
+<%- include('../partials/foot') %>

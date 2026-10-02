@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><div><a href="/informes">← Informes</a><h1>Registro de actividad</h1><p class="muted">Trazabilidad de accesos y modificaciones de datos personales (últimos 300 eventos)</p></div></div>
+<section class="tarjeta">
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Elemento</th></tr></thead>
+    <tbody><% actividad.forEach(r => { %>
+      <tr><td><small><%= h.fechaHora(r.creado_en) %></small></td>
+        <td><%= r.nombre ? r.nombre + ' ' + r.apellidos : '—' %><br><small><%= ROLES[r.rol] || '' %></small></td>
+        <td><%= r.accion.replace(/_/g, ' ') %></td>
+        <td><% if (r.entidad === 'alumno') { %><a href="/alumnos/<%= r.entidad_id %>">Alumno #<%= r.entidad_id %></a><% } else if (r.entidad === 'usuario') { %><a href="/usuarios/<%= r.entidad_id %>">Usuario #<%= r.entidad_id %></a><% } else if (r.entidad === 'clase') { %><a href="/clases/<%= r.entidad_id %>">Clase #<%= r.entidad_id %></a><% } %></td></tr>
+    <% }) %></tbody>
+  </table></div>
+</section>
+<%- include('../partials/foot') %>

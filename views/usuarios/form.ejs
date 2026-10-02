@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<% const u = usuario; const v = (k) => u[k] || ''; %>
+<div class="cabecera"><h1><%= titulo %></h1></div>
+<%- include('../partials/errores') %>
+<form method="post" action="<%= u.id ? '/usuarios/' + u.id : '/usuarios' %>" class="form tarjeta">
+  <%- include('../partials/csrf') %>
+  <% if (!u.id) { %>
+  <label>Perfil * <select name="rol" required>
+    <% Object.entries(h.ROLES).forEach(([k, l]) => { %><option value="<%= k %>" <%= u.rol === k ? 'selected' : '' %>><%= l %></option><% }) %></select></label>
+  <% } else { %><p>Perfil: <strong><%= h.ROLES[u.rol] %></strong></p><% } %>
+  <fieldset><legend>Datos personales</legend><div class="form">
+    <div class="fila">
+      <label>Nombre * <input name="nombre" value="<%= v('nombre') %>" required maxlength="80"></label>
+      <label>Apellidos * <input name="apellidos" value="<%= v('apellidos') %>" required maxlength="120"></label>
+      <label>DNI / NIE <input name="dni" value="<%= v('dni') %>" maxlength="20"></label>
+    </div>
+    <div class="fila">
+      <label>Email (usuario de acceso) * <input type="email" name="email" value="<%= v('email') %>" required maxlength="120"></label>
+      <label>Teléfono <input name="telefono" value="<%= v('telefono') %>" maxlength="30"></label>
+      <label>Teléfono secundario <input name="telefono_secundario" value="<%= v('telefono_secundario') %>" maxlength="30"></label>
+    </div>
+    <div class="fila">
+      <label>Dirección <input name="direccion" value="<%= v('direccion') %>" maxlength="200"></label>
+      <label>Localidad <input name="localidad" value="<%= v('localidad') %>" maxlength="100"></label>
+      <label>Código postal <input name="codigo_postal" value="<%= v('codigo_postal') %>" maxlength="10"></label>
+    </div>
+  </div></fieldset>
+  <fieldset><legend>Datos profesionales</legend><div class="fila">
+    <label>Especialidad (profesorado) <input name="especialidad" value="<%= v('especialidad') %>" maxlength="100" placeholder="Matemáticas, Educación Primaria…"></label>
+    <label>Cargo (dirección / profesorado) <input name="cargo" value="<%= v('cargo') %>" maxlength="100" placeholder="Jefe/a de estudios…"></label>
+    <label>Profesión (familias) <input name="profesion" value="<%= v('profesion') %>" maxlength="100"></label>
+  </div></fieldset>
+  <% if (!u.id) { %><p class="muted">Se generará una contraseña temporal que se mostrará al guardar.</p><% } %>
+  <div class="acciones"><button class="btn btn-primario">Guardar</button><a class="btn" href="<%= u.id ? '/usuarios/' + u.id : '/usuarios?rol=' + (u.rol || 'profesor') %>">Cancelar</a></div>
+</form>
+<%- include('../partials/foot') %>

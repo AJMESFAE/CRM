@@ -1,0 +1,30 @@
+<%- include('partials/head') %>
+<% const p = perfil; %>
+<div class="cabecera"><div><h1>Mi perfil</h1><p class="muted"><%= p.nombre %> <%= p.apellidos %> · <%= h.ROLES[p.rol] %> · <%= p.email %></p></div></div>
+<div class="rejilla-2">
+  <form method="post" action="/perfil" class="form tarjeta">
+    <%- include('partials/csrf') %>
+    <h2>Datos de contacto</h2>
+    <p class="muted">Mantén actualizados tus datos para que el centro pueda localizarte. Para cambiar el nombre, DNI o email, contacta con Secretaría.</p>
+    <div class="fila">
+      <label>Teléfono <input name="telefono" value="<%= p.telefono || '' %>" maxlength="30"></label>
+      <label>Teléfono secundario <input name="telefono_secundario" value="<%= p.telefono_secundario || '' %>" maxlength="30"></label>
+    </div>
+    <label>Dirección <input name="direccion" value="<%= p.direccion || '' %>" maxlength="200"></label>
+    <div class="fila">
+      <label>Localidad <input name="localidad" value="<%= p.localidad || '' %>" maxlength="100"></label>
+      <label>Código postal <input name="codigo_postal" value="<%= p.codigo_postal || '' %>" maxlength="10"></label>
+    </div>
+    <% if (p.rol === 'tutor') { %><label>Profesión <input name="profesion" value="<%= p.profesion || '' %>" maxlength="100"></label><% } %>
+    <div><button class="btn btn-primario">Guardar</button></div>
+  </form>
+  <form method="post" action="/perfil/password" class="form tarjeta">
+    <%- include('partials/csrf') %>
+    <h2>Cambiar contraseña</h2>
+    <label>Contraseña actual <input type="password" name="actual" required autocomplete="current-password"></label>
+    <label>Nueva contraseña <input type="password" name="nueva" required minlength="8" autocomplete="new-password"></label>
+    <label>Repetir nueva contraseña <input type="password" name="repetir" required minlength="8" autocomplete="new-password"></label>
+    <div><button class="btn btn-primario">Cambiar contraseña</button></div>
+  </form>
+</div>
+<%- include('partials/foot') %>

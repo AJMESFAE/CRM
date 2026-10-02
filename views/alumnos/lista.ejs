@@ -1,0 +1,44 @@
+<%- include('../partials/head') %>
+<div class="cabecera">
+  <div><h1>Alumnos</h1><p class="muted"><%= alumnos.length %> alumno<%= alumnos.length === 1 ? '' : 's' %> <%= estado ? '' : 'de baja' %></p></div>
+  <% if (user.rol === 'direccion') { %>
+  <div class="acciones">
+    <a class="btn" href="/alumnos/exportar.csv">Exportar CSV</a>
+    <a class="btn btn-primario" href="/alumnos/nuevo">+ Nuevo alumno</a>
+  </div>
+  <% } %>
+</div>
+<form class="filtros" method="get">
+  <label>Buscar <input type="search" name="q" value="<%= q %>" placeholder="Nombre, expediente o DNI"></label>
+  <label>Clase <select name="clase">
+    <option value="">Todas</option>
+    <% clases.forEach(c => { %><option value="<%= c.id %>" <%= claseId === c.id ? 'selected' : '' %>><%= c.nombre %></option><% }) %>
+  </select></label>
+  <% if (user.rol === 'direccion') { %>
+  <label>Estado <select name="estado"><option value="">Activos</option><option value="baja" <%= estado ? '' : 'selected' %>>De baja</option></select></label>
+  <% } %>
+  <button class="btn">Filtrar</button>
+</form>
+<section class="tarjeta">
+  <% if (!alumnos.length) { %><p class="vacio">No se han encontrado alumnos.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Expediente</th><th>Alumno</th><th>Clase</th><th class="num">Edad</th><th>Avisos</th><th class="num">Faltas</th></tr></thead>
+    <tbody>
+    <% alumnos.forEach(a => { %>
+      <tr>
+        <td><%= a.numero_expediente %></td>
+        <td><a href="/alumnos/<%= a.id %>"><strong><%= a.apellidos %>, <%= a.nombre %></strong></a></td>
+        <td><%= a.clase || '—' %></td>
+        <td class="num"><%= h.edad(a.fecha_nacimiento) %></td>
+        <td>
+          <% if (a.alergias) { %><span class="tag tag-alerta" title="<%= a.alergias %>">Alergias</span><% } %>
+          <% if (a.necesidades_educativas) { %><span class="tag tag-tutoria" title="<%= a.necesidades_educativas %>">NEE</span><% } %>
+        </td>
+        <td class="num"><% if (a.faltas) { %><span class="tag tag-ausente"><%= a.faltas %></span><% } else { %>0<% } %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

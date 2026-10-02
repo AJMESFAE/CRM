@@ -1,0 +1,48 @@
+<%- include('../partials/head') %>
+<div class="cabecera">
+  <div><h1>Pasar lista</h1><p class="muted">Registra la asistencia diaria del grupo</p></div>
+  <div class="acciones"><a class="btn" href="/asistencia/resumen<%= clase ? '?clase=' + clase.id : '' %>">Resumen mensual</a><a class="btn" href="/asistencia/justificaciones">Justificaciones</a></div>
+</div>
+<form class="filtros" method="get">
+  <label>Clase <select name="clase" required><option value="">Selecciona…</option>
+    <% clases.forEach(c => { %><option value="<%= c.id %>" <%= clase && clase.id === c.id ? 'selected' : '' %>><%= c.nombre %></option><% }) %></select></label>
+  <label>Fecha <input type="date" name="fecha" value="<%= fecha %>" max="<%= h.hoy() %>"></label>
+  <button class="btn">Cargar</button>
+</form>
+<% if (clase) { %>
+<section class="tarjeta">
+  <div class="cabecera">
+    <h2><%= clase.nombre %> · <%= h.fecha(fecha) %></h2>
+    <% if (yaRegistrada) { %><span class="tag tag-justificada">Ya registrada: puedes modificarla</span><% } %>
+  </div>
+  <% if (!alumnos.length) { %><p class="vacio">No hay alumnos en esta clase.</p><% } else { %>
+  <form method="post" action="/asistencia">
+    <%- include('../partials/csrf') %>
+    <input type="hidden" name="clase_id" value="<%= clase.id %>"><input type="hidden" name="fecha" value="<%= fecha %>">
+    <p class="acciones no-imprimir"><button type="button" class="btn btn-peq" data-marcar-todos="presente">Todos presentes</button></p>
+    <div class="tabla-wrap"><table class="lista-asistencia">
+      <thead><tr><th>Alumno</th><th>Estado</th><th>Observación</th></tr></thead>
+      <tbody><% alumnos.forEach(a => { const est = a.estado || 'presente'; %>
+        <tr>
+          <td><a href="/alumnos/<%= a.id %>?tab=asistencia"><%= a.apellidos %>, <%= a.nombre %></a>
+            <% if (a.motivo_familia) { %><br><small>Familia: “<%= a.motivo_familia %>”</small><% } %></td>
+          <td><div class="radios">
+            <% Object.entries(ESTADOS_ASISTENCIA).forEach(([k, l]) => { %>
+              <label><input type="radio" name="estado_<%= a.id %>" value="<%= k %>" <%= est === k ? 'checked' : '' %>> <%= l %></label>
+            <% }) %>
+          </div></td>
+          <td><input name="obs_<%= a.id %>" value="<%= a.observacion || '' %>" maxlength="300" placeholder="Opcional"></td>
+        </tr>
+      <% }) %></tbody>
+    </table></div>
+    <div class="acciones mt">
+      <label class="check"><input type="checkbox" name="notificar" checked> Avisar a las familias de faltas y retrasos por mensaje</label>
+      <button class="btn btn-primario">Guardar asistencia</button>
+    </div>
+  </form>
+  <% } %>
+</section>
+<% } else if (!clases.length) { %>
+  <div class="aviso aviso-info">No tienes clases asignadas.</div>
+<% } %>
+<%- include('../partials/foot') %>

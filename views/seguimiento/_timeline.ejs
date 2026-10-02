@@ -1,0 +1,14 @@
+<% if (!anotaciones.length) { %><p class="vacio">No hay anotaciones.</p><% } else { %>
+<ul class="timeline">
+  <% anotaciones.forEach(s => { %>
+  <li>
+    <span class="tag tag-<%= s.tipo %>"><%= h.TIPOS_SEGUIMIENTO[s.tipo] %></span>
+    <strong><%= s.titulo %></strong>
+    <% if (mostrarAlumno) { %> · <a href="/alumnos/<%= s.alumno_id %>?tab=seguimiento"><%= s.nombre %> <%= s.apellidos %></a><% } %>
+    <% if (!s.visible_familia && user.rol !== 'tutor') { %> <span class="tag" title="No visible para la familia">Interno</span><% } %>
+    <div class="meta"><%= h.fecha(s.fecha) %><% if (s.autor_nombre) { %> · <%= s.autor_nombre %> <%= s.autor_apellidos %><% } %><% if (s.clase) { %> · <%= s.clase %><% } %></div>
+    <div><%= s.descripcion %></div>
+  </li>
+  <% }) %>
+</ul>
+<% } %>

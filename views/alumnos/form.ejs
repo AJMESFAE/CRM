@@ -1,0 +1,58 @@
+<%- include('../partials/head') %>
+<% const a = alumno; const v = (k) => a[k] === null || a[k] === undefined ? '' : a[k]; %>
+<div class="cabecera"><div><h1><%= titulo %></h1><p class="muted">Los campos marcados con * son obligatorios</p></div></div>
+<%- include('../partials/errores') %>
+<form method="post" action="<%= a.id ? '/alumnos/' + a.id : '/alumnos' %>" class="form tarjeta">
+  <%- include('../partials/csrf') %>
+  <fieldset><legend>Datos personales</legend>
+    <div class="form">
+      <div class="fila">
+        <label>Nombre * <input name="nombre" value="<%= v('nombre') %>" required maxlength="80"></label>
+        <label>Apellidos * <input name="apellidos" value="<%= v('apellidos') %>" required maxlength="120"></label>
+      </div>
+      <div class="fila">
+        <label>Fecha de nacimiento * <input type="date" name="fecha_nacimiento" value="<%= v('fecha_nacimiento') %>" required></label>
+        <label>Sexo <select name="sexo"><option value="">—</option>
+          <% [['F', 'Femenino'], ['M', 'Masculino'], ['X', 'No binario / otro']].forEach(([k, l]) => { %><option value="<%= k %>" <%= a.sexo === k ? 'selected' : '' %>><%= l %></option><% }) %>
+        </select></label>
+        <label>DNI / NIE <input name="dni_nie" value="<%= v('dni_nie') %>" maxlength="20"></label>
+        <label>Nacionalidad <input name="nacionalidad" value="<%= v('nacionalidad') %>" maxlength="60"></label>
+      </div>
+      <div class="fila">
+        <label>Dirección <input name="direccion" value="<%= v('direccion') %>" maxlength="200"></label>
+        <label>Localidad <input name="localidad" value="<%= v('localidad') %>" maxlength="100"></label>
+        <label>Código postal <input name="codigo_postal" value="<%= v('codigo_postal') %>" maxlength="10" pattern="\d{5}"></label>
+      </div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Datos académicos</legend>
+    <div class="fila">
+      <label>Nº de expediente * <input name="numero_expediente" value="<%= v('numero_expediente') %>" required maxlength="20"></label>
+      <label>Clase <select name="clase_id"><option value="">Sin asignar</option>
+        <% clases.forEach(c => { %><option value="<%= c.id %>" <%= Number(a.clase_id) === c.id ? 'selected' : '' %>><%= c.nombre %> (<%= c.curso_academico %>)</option><% }) %>
+      </select></label>
+      <label>Fecha de matrícula <input type="date" name="fecha_matricula" value="<%= v('fecha_matricula') %>"></label>
+    </div>
+  </fieldset>
+  <fieldset><legend>Salud y necesidades educativas</legend>
+    <div class="fila">
+      <label>Alergias <textarea name="alergias" maxlength="1000"><%= v('alergias') %></textarea></label>
+      <label>Condiciones médicas <textarea name="condiciones_medicas" maxlength="1000"><%= v('condiciones_medicas') %></textarea></label>
+      <label>Medicación <textarea name="medicacion" maxlength="1000"><%= v('medicacion') %></textarea></label>
+    </div>
+    <div class="fila">
+      <label>Necesidades educativas especiales / apoyo <textarea name="necesidades_educativas" maxlength="1000"><%= v('necesidades_educativas') %></textarea></label>
+      <label>Observaciones generales <textarea name="observaciones" maxlength="2000"><%= v('observaciones') %></textarea></label>
+    </div>
+  </fieldset>
+  <fieldset><legend>Autorizaciones y consentimientos</legend>
+    <label class="check"><input type="checkbox" name="consentimiento_datos" <%= a.consentimiento_datos ? 'checked' : '' %>> Consentimiento para el tratamiento de datos personales (RGPD)</label>
+    <label class="check"><input type="checkbox" name="autorizacion_imagenes" <%= a.autorizacion_imagenes ? 'checked' : '' %>> Autoriza el uso de imágenes en actividades del centro</label>
+    <label class="check"><input type="checkbox" name="autorizacion_salidas" <%= a.autorizacion_salidas ? 'checked' : '' %>> Autoriza salidas y excursiones</label>
+  </fieldset>
+  <div class="acciones">
+    <button class="btn btn-primario">Guardar</button>
+    <a class="btn" href="<%= a.id ? '/alumnos/' + a.id : '/alumnos' %>">Cancelar</a>
+  </div>
+</form>
+<%- include('../partials/foot') %>
