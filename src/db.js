@@ -17,7 +17,14 @@ function openDb(dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data
   if (dbPath !== ':memory:') fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const raw = new DatabaseSync(dbPath);
   raw.exec('PRAGMA foreign_keys = ON;');
-  if (dbPath !== ':memory:') raw.exec('PRAGMA journal_mode = WAL;');
+  raw.exec('PRAGMA busy_timeout = 5000;');
+  if (dbPath !== ':memory:') {
+    // WAL necesita memoria compartida y no funciona en sistemas de ficheros de red
+    // (p. ej. /home en Azure App Service, montado sobre Azure Storage): ahí usar DELETE.
+    const modo = String(process.env.SQLITE_JOURNAL_MODE || 'WAL').toUpperCase();
+    if (!['WAL', 'DELETE', 'TRUNCATE'].includes(modo)) throw new Error(`SQLITE_JOURNAL_MODE no válido: ${modo}`);
+    raw.exec(`PRAGMA journal_mode = ${modo};`);
+  }
   raw.exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
 
   const db = {

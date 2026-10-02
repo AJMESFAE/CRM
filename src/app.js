@@ -24,6 +24,16 @@ function createApp(db, opciones = {}) {
     });
     next();
   });
+  // Comprobación de estado para el balanceador (Azure App Service health check)
+  app.get('/healthz', (req, res) => {
+    try {
+      db.get('SELECT 1');
+      res.set('Cache-Control', 'no-store').json({ estado: 'ok' });
+    } catch {
+      res.status(503).json({ estado: 'error' });
+    }
+  });
+
   app.use('/static', express.static(path.join(__dirname, '..', 'public'), { maxAge: '1h' }));
   app.use(express.urlencoded({ extended: true, limit: '200kb' }));
 

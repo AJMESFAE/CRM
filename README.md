@@ -6,7 +6,7 @@ Construida con Node.js + Express + SQLite (módulo `node:sqlite` integrado en No
 
 ## Puesta en marcha
 
-Requisitos: **Node.js 22.13 o superior**.
+Requisitos: **Node.js 22.13 o superior** (probado en Node 22 y 24).
 
 ```bash
 npm install
@@ -37,7 +37,16 @@ Contraseña de todas: `colegio123`
 | `SESSION_SECRET` | Secreto para firmar las cookies de sesión. **Obligatorio en producción** |
 | `COOKIE_SECURE=1` | Marca la cookie como `Secure` (usar detrás de HTTPS) |
 | `TRUST_PROXY=1` | Si se ejecuta detrás de un proxy inverso |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Usuario de Dirección creado en el primer arranque |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Usuario de Dirección creado en el primer arranque (obligatorias en producción con la base de datos vacía) |
+| `NODE_ENV=production` | Exige `SESSION_SECRET` y no genera contraseñas aleatorias en los logs |
+| `SQLITE_JOURNAL_MODE` | `WAL` (por defecto) o `DELETE` (obligatorio en sistemas de ficheros de red como `/home` de Azure App Service) |
+| `BACKUP_DIR` | Si se define, la app crea una copia consistente de la base de datos cada `BACKUP_INTERVAL_HOURS` (24) y conserva `BACKUP_RETENTION_DAYS` (14) días |
+
+Copia manual de la base de datos: `npm run backup`. Comprobación de estado: `GET /healthz`.
+
+## Despliegue en Azure
+
+La aplicación está preparada para **Azure App Service (Linux)** con infraestructura como código (`infra/main.bicep`) y despliegue continuo con GitHub Actions (`.github/workflows/ci-cd.yml`). Consulta **[docs/despliegue-azure.md](docs/despliegue-azure.md)** para el análisis de viabilidad, costes, copias de seguridad, RGPD y los pasos de despliegue.
 
 ## Perfiles y permisos
 
@@ -108,7 +117,11 @@ src/
   routes/            alumnos, clases, usuarios, asistencia, notas, seguimiento, mensajes, informes, perfil
 views/               plantillas EJS
 public/              CSS y JS del cliente
+  backup.js          copias de seguridad consistentes (VACUUM INTO)
 test/                tests de integración (node:test + supertest)
+infra/               infraestructura de Azure (Bicep)
+docs/                documentación de despliegue
+.github/workflows/   CI y despliegue continuo
 ```
 
 ## Tests
@@ -117,4 +130,4 @@ test/                tests de integración (node:test + supertest)
 npm test
 ```
 
-Cubren el inicio de sesión, la carga de todas las páginas con cada perfil, el control de acceso (familias, profesores fuera de su clase o asignatura, mensajes ajenos), el flujo completo de asistencia y justificación, las calificaciones y la gestión por Dirección.
+Cubren el inicio de sesión, la carga de todas las páginas con cada perfil, el control de acceso (familias, profesores fuera de su clase o asignatura, mensajes ajenos), el flujo completo de asistencia y justificación, las calificaciones, la gestión por Dirección y la preparación para producción (health check, proxy de Azure, copias de seguridad y arranque con la configuración de App Service).
