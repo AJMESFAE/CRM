@@ -1,0 +1,16 @@
+<%- include('partials/head') %>
+<section class="login">
+  <div class="tarjeta">
+    <h1><span class="logo">◆</span> CRM Escolar</h1>
+    <p class="muted">Acceso para Dirección, profesorado y familias</p>
+    <% if (error) { %><div class="aviso aviso-error"><%= error %></div><% } %>
+    <form method="post" action="/login" class="form">
+      <%- include('partials/csrf') %>
+      <input type="hidden" name="next" value="<%= next %>">
+      <label>Email <input type="email" name="email" value="<%= email %>" required autofocus autocomplete="username"></label>
+      <label>Contraseña <input type="password" name="password" required autocomplete="current-password"></label>
+      <button class="btn btn-primario btn-bloque">Entrar</button>
+    </form>
+  </div>
+</section>
+<%- include('partials/foot') %>

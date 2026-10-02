@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+<% const c = clase; %>
+<div class="cabecera"><h1><%= titulo %></h1></div>
+<%- include('../partials/errores') %>
+<form method="post" action="<%= c.id ? '/clases/' + c.id : '/clases' %>" class="form tarjeta">
+  <%- include('../partials/csrf') %>
+  <div class="fila">
+    <label>Etapa * <select name="etapa" required><option value="">Selecciona…</option>
+      <% ETAPAS.forEach(e => { %><option <%= c.etapa === e ? 'selected' : '' %>><%= e %></option><% }) %></select></label>
+    <label>Nivel * <input name="nivel" value="<%= c.nivel || '' %>" required placeholder="1º, 2º, 3 años…" maxlength="20"></label>
+    <label>Grupo * <input name="grupo" value="<%= c.grupo || '' %>" required placeholder="A" maxlength="10"></label>
+  </div>
+  <div class="fila">
+    <label>Curso académico * <input name="curso_academico" value="<%= c.curso_academico || '' %>" required pattern="\d{4}-\d{4}" placeholder="2026-2027"></label>
+    <label>Aula <input name="aula" value="<%= c.aula || '' %>" maxlength="30"></label>
+    <label>Profesor/a tutor/a <select name="tutor_id"><option value="">Sin asignar</option>
+      <% profesores.forEach(p => { %><option value="<%= p.id %>" <%= Number(c.tutor_id) === p.id ? 'selected' : '' %>><%= p.apellidos %>, <%= p.nombre %></option><% }) %></select></label>
+  </div>
+  <div class="acciones"><button class="btn btn-primario">Guardar</button><a class="btn" href="<%= c.id ? '/clases/' + c.id : '/clases' %>">Cancelar</a></div>
+</form>
+<%- include('../partials/foot') %>

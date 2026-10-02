@@ -1,0 +1,67 @@
+<%- include('../partials/head') %>
+<% const c = clase; const dir = user.rol === 'direccion'; %>
+<div class="cabecera">
+  <div><h1><%= c.nombre %></h1>
+    <p class="muted"><%= c.curso_academico %> · <%= c.etapa %><%= c.aula ? ' · Aula ' + c.aula : '' %> · Tutor/a: <%= c.tutor_nombre ? c.tutor_nombre + ' ' + c.tutor_apellidos : 'sin asignar' %></p></div>
+  <div class="acciones">
+    <a class="btn btn-primario" href="/asistencia?clase=<%= c.id %>">Pasar lista</a>
+    <a class="btn" href="/asistencia/resumen?clase=<%= c.id %>">Resumen asistencia</a>
+    <% if (dir) { %>
+      <a class="btn" href="/alumnos/nuevo?clase=<%= c.id %>">+ Alumno</a>
+      <a class="btn" href="/clases/<%= c.id %>/editar">Editar</a>
+      <% if (!alumnos.length) { %><form method="post" action="/clases/<%= c.id %>/eliminar" data-confirm="¿Eliminar esta clase?"><%- include('../partials/csrf') %><button class="btn btn-peligro">Eliminar</button></form><% } %>
+    <% } %>
+  </div>
+</div>
+
+<section class="tarjeta">
+  <h2>Alumnos (<%= alumnos.length %>)</h2>
+  <% if (!alumnos.length) { %><p class="vacio">No hay alumnos en esta clase.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Alumno</th><th class="num">Edad</th><th>Avisos</th><th>Asistencia</th><th class="num">Faltas</th><th class="num">Media</th></tr></thead>
+    <tbody><% alumnos.forEach(a => { %>
+      <tr>
+        <td><a href="/alumnos/<%= a.id %>"><%= a.apellidos %>, <%= a.nombre %></a></td>
+        <td class="num"><%= h.edad(a.fecha_nacimiento) %></td>
+        <td><% if (a.alergias) { %><span class="tag tag-alerta" title="<%= a.alergias %>">Alergias</span><% } %><% if (a.necesidades_educativas) { %> <span class="tag tag-tutoria" title="<%= a.necesidades_educativas %>">NEE</span><% } %></td>
+        <td><% if (a.porcentaje !== null) { %><div class="barra <%= a.porcentaje < 85 ? 'baja' : '' %>" title="<%= h.porcentaje(a.porcentaje) %>"><span class="w-<%= Math.round(a.porcentaje / 5) * 5 %>"></span></div><small><%= h.porcentaje(a.porcentaje) %></small><% } else { %>—<% } %></td>
+        <td class="num"><%= a.faltas %></td>
+        <td class="num <%= h.claseNota(a.media) %>"><%= h.formatoNota(a.media) %></td>
+      </tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+</section>
+
+<section class="tarjeta">
+  <h2>Asignaturas y profesorado</h2>
+  <% if (!asignaturas.length) { %><p class="vacio">No hay asignaturas asignadas.</p><% } else { %>
+  <table>
+    <thead><tr><th>Asignatura</th><th>Profesor/a</th><th class="num">Horas/semana</th><th></th></tr></thead>
+    <tbody><% asignaturas.forEach(s => { %>
+      <tr><td><%= s.asignatura %></td><td><%= s.prof_nombre ? s.prof_nombre + ' ' + s.prof_apellidos : 'Sin asignar' %></td><td class="num"><%= s.horas_semana || '—' %></td>
+        <td class="num">
+          <a class="btn btn-peq" href="/notas?asignacion=<%= s.id %>">Notas</a>
+          <% if (dir) { %><form class="inline" method="post" action="/clases/<%= c.id %>/asignaturas/<%= s.id %>/eliminar" data-confirm="¿Quitar la asignatura de esta clase?"><%- include('../partials/csrf') %><button class="btn btn-peq btn-peligro">Quitar</button></form><% } %>
+        </td></tr>
+    <% }) %></tbody>
+  </table>
+  <% } %>
+  <% if (dir) { %>
+  <form method="post" action="/clases/<%= c.id %>/asignaturas" class="form mt">
+    <%- include('../partials/csrf') %>
+    <h3>Asignar asignatura / cambiar profesor</h3>
+    <div class="fila">
+      <label>Asignatura existente <select name="asignatura_id"><option value="">—</option>
+        <% todasAsignaturas.forEach(s => { %><option value="<%= s.id %>"><%= s.nombre %></option><% }) %>
+        <% asignaturas.forEach(s => { %><option value="<%= s.asignatura_id %>"><%= s.asignatura %> (ya asignada)</option><% }) %></select></label>
+      <label>…o nueva asignatura <input name="nueva_asignatura" maxlength="80" placeholder="Nombre"></label>
+      <label>Profesor/a <select name="profesor_id"><option value="">Sin asignar</option>
+        <% profesores.forEach(p => { %><option value="<%= p.id %>"><%= p.apellidos %>, <%= p.nombre %></option><% }) %></select></label>
+      <label>Horas/semana <input type="number" name="horas_semana" min="0" max="40"></label>
+    </div>
+    <div><button class="btn btn-primario">Guardar</button></div>
+  </form>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

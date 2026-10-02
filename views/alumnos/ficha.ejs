@@ -1,0 +1,282 @@
+<%- include('../partials/head') %>
+<% const a = alumno; const staff = user.rol !== 'tutor'; const dir = user.rol === 'direccion'; const si = (v) => v ? 'Sí' : 'No'; %>
+<div class="cabecera">
+  <div>
+    <h1><%= a.nombre %> <%= a.apellidos %> <% if (!a.activo) { %><span class="tag tag-ausente">Baja</span><% } %></h1>
+    <p class="muted">Exp. <%= a.numero_expediente %> · <%= a.clase || 'Sin clase' %> · <%= h.edad(a.fecha_nacimiento) %> años</p>
+  </div>
+  <div class="acciones">
+    <a class="btn" href="/alumnos/<%= a.id %>/boletin">Boletín</a>
+    <% if (staff && tutores.length) { %><a class="btn" href="/mensajes/nuevo?para=<%= tutores[0].id %>&alumno=<%= a.id %>">Escribir a la familia</a><% } %>
+    <% if (dir) { %>
+      <a class="btn btn-primario" href="/alumnos/<%= a.id %>/editar">Editar</a>
+      <form method="post" action="/alumnos/<%= a.id %>/estado" data-confirm="<%= a.activo ? '¿Dar de baja a este alumno?' : '¿Reactivar a este alumno?' %>">
+        <%- include('../partials/csrf') %><button class="btn <%= a.activo ? 'btn-peligro' : 'btn-ok' %>"><%= a.activo ? 'Dar de baja' : 'Reactivar' %></button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<% if (a.alergias || a.condiciones_medicas || a.medicacion) { %>
+  <div class="aviso aviso-warn"><strong>Atención sanitaria:</strong>
+    <% if (a.alergias) { %> Alergias: <%= a.alergias %>.<% } %>
+    <% if (a.condiciones_medicas) { %> Condiciones: <%= a.condiciones_medicas %>.<% } %>
+    <% if (a.medicacion) { %> Medicación: <%= a.medicacion %>.<% } %>
+  </div>
+<% } %>
+
+<nav class="pestanas">
+  <% [['datos', 'Datos personales'], ['familia', 'Familia y contactos'], ['asistencia', 'Asistencia'], ['notas', 'Calificaciones'], ['seguimiento', 'Seguimiento']].forEach(([k, l]) => { %>
+    <a href="?tab=<%= k %>" class="<%= tab === k ? 'activo' : '' %>"><%= l %></a>
+  <% }) %>
+</nav>
+
+<% if (tab === 'datos') { %>
+<div class="rejilla-2">
+  <section class="tarjeta">
+    <h2>Datos personales</h2>
+    <dl class="datos">
+      <dt>Nombre completo</dt><dd><%= a.nombre %> <%= a.apellidos %></dd>
+      <dt>Fecha de nacimiento</dt><dd><%= h.fecha(a.fecha_nacimiento) %> (<%= h.edad(a.fecha_nacimiento) %> años)</dd>
+      <dt>Sexo</dt><dd><%= { F: 'Femenino', M: 'Masculino', X: 'No binario / otro' }[a.sexo] || '—' %></dd>
+      <dt>DNI / NIE</dt><dd><%= a.dni_nie || '—' %></dd>
+      <dt>Nacionalidad</dt><dd><%= a.nacionalidad || '—' %></dd>
+      <dt>Domicilio</dt><dd><%= [a.direccion, a.codigo_postal, a.localidad].filter(Boolean).join(', ') || '—' %></dd>
+    </dl>
+  </section>
+  <section class="tarjeta">
+    <h2>Datos académicos</h2>
+    <dl class="datos">
+      <dt>Nº expediente</dt><dd><%= a.numero_expediente %></dd>
+      <dt>Clase</dt><dd><% if (a.clase_id && staff) { %><a href="/clases/<%= a.clase_id %>"><%= a.clase %></a><% } else { %><%= a.clase || '—' %><% } %></dd>
+      <dt>Tutor/a del grupo</dt><dd><%= tutorClase ? tutorClase.nombre + ' ' + tutorClase.apellidos : '—' %>
+        <% if (tutorClase && tutorClase.id !== user.id) { %> · <a href="/mensajes/nuevo?para=<%= tutorClase.id %>&alumno=<%= a.id %>">Escribir</a><% } %></dd>
+      <dt>Fecha de matrícula</dt><dd><%= h.fecha(a.fecha_matricula) || '—' %></dd>
+    </dl>
+    <% if (profesorado.length) { %>
+      <h3 class="mt">Profesorado</h3>
+      <table><tbody><% profesorado.forEach(p => { %>
+        <tr><td><%= p.asignatura %></td><td><%= p.nombre ? p.nombre + ' ' + p.apellidos : 'Sin asignar' %></td></tr>
+      <% }) %></tbody></table>
+    <% } %>
+  </section>
+  <section class="tarjeta medico">
+    <h2>Salud y necesidades</h2>
+    <dl class="datos">
+      <dt>Alergias</dt><dd><%= a.alergias || 'Ninguna conocida' %></dd>
+      <dt>Condiciones médicas</dt><dd><%= a.condiciones_medicas || '—' %></dd>
+      <dt>Medicación</dt><dd><%= a.medicacion || '—' %></dd>
+      <dt>Necesidades educativas</dt><dd><%= a.necesidades_educativas || '—' %></dd>
+      <% if (staff) { %><dt>Observaciones</dt><dd><%= a.observaciones || '—' %></dd><% } %>
+    </dl>
+  </section>
+  <section class="tarjeta">
+    <h2>Autorizaciones</h2>
+    <dl class="datos">
+      <dt>Tratamiento de datos (RGPD)</dt><dd><%= si(a.consentimiento_datos) %></dd>
+      <dt>Uso de imágenes</dt><dd><%= si(a.autorizacion_imagenes) %></dd>
+      <dt>Salidas y excursiones</dt><dd><%= si(a.autorizacion_salidas) %></dd>
+    </dl>
+  </section>
+</div>
+<% } %>
+
+<% if (tab === 'familia') { %>
+<section class="tarjeta">
+  <h2>Padres / tutores legales</h2>
+  <% if (!tutores.length) { %><p class="vacio">No hay familiares vinculados.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Nombre</th><th>Parentesco</th><th>Contacto</th><th>DNI</th><th>Custodia</th><th>Recogida</th><th></th></tr></thead>
+    <tbody><% tutores.forEach(t => { %>
+      <tr>
+        <td><strong><%= t.nombre %> <%= t.apellidos %></strong><% if (t.contacto_principal) { %> <span class="tag tag-tutoria">Principal</span><% } %><br><small><%= t.profesion || '' %></small></td>
+        <td><%= t.parentesco %></td>
+        <td><%= t.telefono || '—' %><% if (t.telefono_secundario) { %> / <%= t.telefono_secundario %><% } %><br><a href="mailto:<%= t.email %>"><%= t.email %></a></td>
+        <td><%= t.dni || '—' %></td>
+        <td><%= si(t.custodia) %></td>
+        <td><%= si(t.autorizado_recogida) %></td>
+        <td class="num">
+          <% if (staff && t.id !== user.id) { %><a class="btn btn-peq" href="/mensajes/nuevo?para=<%= t.id %>&alumno=<%= a.id %>">Mensaje</a><% } %>
+          <% if (dir) { %>
+            <a class="btn btn-peq" href="/usuarios/<%= t.id %>">Ver</a>
+            <form class="inline" method="post" action="/alumnos/<%= a.id %>/tutores/<%= t.id %>/eliminar" data-confirm="¿Desvincular a este familiar del alumno?">
+              <%- include('../partials/csrf') %><button class="btn btn-peq btn-peligro">Quitar</button></form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+
+  <% if (dir) { %>
+  <div class="rejilla-2 mt">
+    <% if (tutoresDisponibles.length) { %>
+    <form method="post" action="/alumnos/<%= a.id %>/tutores" class="form">
+      <%- include('../partials/csrf') %>
+      <h3>Vincular familiar existente</h3>
+      <label>Familiar <select name="tutor_id" required><option value="">Selecciona…</option>
+        <% tutoresDisponibles.forEach(t => { %><option value="<%= t.id %>"><%= t.apellidos %>, <%= t.nombre %> (<%= t.email %>)</option><% }) %>
+      </select></label>
+      <label>Parentesco <select name="parentesco"><% PARENTESCOS.forEach(p => { %><option><%= p %></option><% }) %></select></label>
+      <label class="check"><input type="checkbox" name="contacto_principal"> Contacto principal</label>
+      <label class="check"><input type="checkbox" name="custodia" checked> Tiene la custodia</label>
+      <label class="check"><input type="checkbox" name="autorizado_recogida" checked> Autorizado para recoger</label>
+      <div><button class="btn btn-primario">Vincular</button></div>
+    </form>
+    <% } %>
+    <form method="post" action="/alumnos/<%= a.id %>/tutores" class="form">
+      <%- include('../partials/csrf') %>
+      <h3>Dar de alta un nuevo padre / madre / tutor</h3>
+      <div class="fila">
+        <label>Nombre <input name="nombre" required></label>
+        <label>Apellidos <input name="apellidos" required></label>
+      </div>
+      <div class="fila">
+        <label>Email (acceso) <input type="email" name="email" required></label>
+        <label>Teléfono <input name="telefono"></label>
+      </div>
+      <div class="fila">
+        <label>DNI <input name="dni"></label>
+        <label>Profesión <input name="profesion"></label>
+        <label>Parentesco <select name="parentesco"><% PARENTESCOS.forEach(p => { %><option><%= p %></option><% }) %></select></label>
+      </div>
+      <label class="check"><input type="checkbox" name="contacto_principal" <%= tutores.length ? '' : 'checked' %>> Contacto principal</label>
+      <label class="check"><input type="checkbox" name="custodia" checked> Tiene la custodia</label>
+      <label class="check"><input type="checkbox" name="autorizado_recogida" checked> Autorizado para recoger</label>
+      <div><button class="btn btn-primario">Crear y vincular</button></div>
+      <small>Se generará una contraseña temporal para que pueda acceder al portal de familias.</small>
+    </form>
+  </div>
+  <% } %>
+</section>
+
+<section class="tarjeta">
+  <h2>Contactos de emergencia y personas autorizadas</h2>
+  <% if (!contactos.length) { %><p class="vacio">No hay contactos adicionales.</p><% } else { %>
+  <table>
+    <thead><tr><th>Nombre</th><th>Parentesco</th><th>Teléfono</th><th>Puede recoger</th><th></th></tr></thead>
+    <tbody><% contactos.forEach(c => { %>
+      <tr><td><%= c.nombre %></td><td><%= c.parentesco || '—' %></td><td><%= c.telefono %></td><td><%= si(c.autorizado_recogida) %></td>
+        <td class="num"><% if (dir || esTutorLegal) { %>
+          <form class="inline" method="post" action="/alumnos/<%= a.id %>/contactos/<%= c.id %>/eliminar" data-confirm="¿Eliminar este contacto?">
+            <%- include('../partials/csrf') %><button class="btn btn-peq btn-peligro">Eliminar</button></form>
+        <% } %></td></tr>
+    <% }) %></tbody>
+  </table>
+  <% } %>
+  <% if (dir || esTutorLegal) { %>
+  <form method="post" action="/alumnos/<%= a.id %>/contactos" class="form mt">
+    <%- include('../partials/csrf') %>
+    <div class="fila">
+      <label>Nombre <input name="nombre" required maxlength="120"></label>
+      <label>Parentesco <input name="parentesco" maxlength="40" placeholder="Abuela, vecino…"></label>
+      <label>Teléfono <input name="telefono" required maxlength="30"></label>
+    </div>
+    <label class="check"><input type="checkbox" name="autorizado_recogida"> Autorizado/a para recoger al alumno</label>
+    <div><button class="btn">Añadir contacto</button></div>
+  </form>
+  <% } %>
+</section>
+<% } %>
+
+<% if (tab === 'asistencia') { const r = resumen; %>
+<div class="kpis">
+  <div class="kpi"><div class="valor"><%= h.porcentaje(r.porcentaje) %></div><div class="etiqueta">Asistencia (<%= r.total %> días registrados)</div></div>
+  <div class="kpi <%= r.faltas ? 'alerta' : '' %>"><div class="valor"><%= r.faltas || 0 %></div><div class="etiqueta">Faltas sin justificar</div></div>
+  <div class="kpi"><div class="valor"><%= r.justificadas || 0 %></div><div class="etiqueta">Faltas justificadas</div></div>
+  <div class="kpi"><div class="valor"><%= r.retrasos || 0 %></div><div class="etiqueta">Retrasos</div></div>
+</div>
+<section class="tarjeta">
+  <h2>Incidencias de asistencia</h2>
+  <% if (!asistencia.length) { %><p class="vacio">Sin faltas ni retrasos registrados.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Estado</th><th>Observación</th><th>Justificación de la familia</th><th></th></tr></thead>
+    <tbody><% asistencia.forEach(s => { const pendiente = ['ausente', 'retraso'].includes(s.estado); %>
+      <tr>
+        <td><%= h.fecha(s.fecha) %></td>
+        <td><span class="tag tag-<%= s.estado %>"><%= h.ESTADOS_ASISTENCIA[s.estado] %></span></td>
+        <td><%= s.observacion || '' %><% if (staff && s.reg_nombre) { %><br><small>Registró: <%= s.reg_nombre %> <%= s.reg_apellidos %></small><% } %></td>
+        <td><% if (s.motivo_familia) { %>“<%= s.motivo_familia %>”<br><small>Enviada el <%= h.fechaHora(s.motivo_familia_en) %><%= pendiente ? ' · pendiente de revisión' : '' %></small><% } %></td>
+        <td class="num">
+          <% if (esTutorLegal && pendiente && !s.motivo_familia) { %>
+            <form method="post" action="/alumnos/<%= a.id %>/asistencia/<%= s.id %>/justificar" class="acciones">
+              <%- include('../partials/csrf') %>
+              <input name="motivo" required maxlength="500" placeholder="Motivo (cita médica…)">
+              <button class="btn btn-peq">Justificar</button>
+            </form>
+          <% } %>
+          <% if (staff && pendiente && s.motivo_familia) { %>
+            <form method="post" action="/asistencia/<%= s.id %>/revisar" class="acciones">
+              <%- include('../partials/csrf') %><input type="hidden" name="volver" value="ficha">
+              <button class="btn btn-peq btn-ok" name="accion" value="aceptar">Aceptar</button>
+              <button class="btn btn-peq btn-peligro" name="accion" value="rechazar">Rechazar</button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+</section>
+<% } %>
+
+<% if (tab === 'notas') { %>
+<section class="tarjeta">
+  <div class="cabecera"><h2>Resumen de calificaciones</h2><a class="btn btn-peq" href="/alumnos/<%= a.id %>/boletin">Ver boletín imprimible</a></div>
+  <%- include('_tabla_boletin', { boletin }) %>
+</section>
+<% boletin.filter(b => b.notas.length).forEach(b => { %>
+<section class="tarjeta">
+  <h3><%= b.nombre %> <small><%= b.prof_nombre ? '· ' + b.prof_nombre + ' ' + b.prof_apellidos : '' %></small></h3>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Trim.</th><th>Fecha</th><th>Tipo</th><th>Descripción</th><th class="num">Peso</th><th class="num">Nota</th><th>Comentario</th><% if (staff) { %><th></th><% } %></tr></thead>
+    <tbody><% b.notas.forEach(n => { %>
+      <tr><td><%= n.trimestre %>º</td><td><%= h.fecha(n.fecha) %></td><td><%= h.TIPOS_NOTA[n.tipo] %></td><td><%= n.descripcion %></td>
+        <td class="num"><%= n.peso %></td><td class="num <%= h.claseNota(n.nota) %>"><%= h.formatoNota(n.nota) %></td><td><%= n.comentario || '' %></td>
+        <% if (staff) { %><td class="num">
+          <form class="inline" method="post" action="/notas/<%= n.id %>/eliminar" data-confirm="¿Eliminar esta nota?"><%- include('../partials/csrf') %><button class="btn btn-peq btn-peligro">×</button></form>
+        </td><% } %></tr>
+    <% }) %></tbody>
+  </table></div>
+</section>
+<% }) %>
+<% } %>
+
+<% if (tab === 'seguimiento') { %>
+<% if (staff) { %>
+<section class="tarjeta">
+  <h2>Nueva anotación</h2>
+  <form method="post" action="/alumnos/<%= a.id %>/seguimiento" class="form">
+    <%- include('../partials/csrf') %>
+    <div class="fila">
+      <label>Tipo <select name="tipo" required><% Object.entries(TIPOS_SEGUIMIENTO).forEach(([k, l]) => { %><option value="<%= k %>"><%= l %></option><% }) %></select></label>
+      <label>Fecha <input type="date" name="fecha" value="<%= h.hoy() %>" required></label>
+      <label>Título <input name="titulo" required maxlength="150" placeholder="Resumen breve"></label>
+    </div>
+    <label>Descripción <textarea name="descripcion" required maxlength="4000"></textarea></label>
+    <label class="check"><input type="checkbox" name="visible_familia" checked> Visible para la familia en su portal</label>
+    <div><button class="btn btn-primario">Guardar anotación</button></div>
+  </form>
+</section>
+<% } %>
+<section class="tarjeta">
+  <h2>Historial de seguimiento</h2>
+  <% if (!seguimiento.length) { %><p class="vacio">No hay anotaciones.</p><% } else { %>
+  <ul class="timeline">
+    <% seguimiento.forEach(s => { %>
+    <li>
+      <span class="tag tag-<%= s.tipo %>"><%= TIPOS_SEGUIMIENTO[s.tipo] %></span> <strong><%= s.titulo %></strong>
+      <% if (staff && !s.visible_familia) { %><span class="tag">Interno</span><% } %>
+      <div class="meta"><%= h.fecha(s.fecha) %> · <%= s.autor_nombre ? s.autor_nombre + ' ' + s.autor_apellidos : '' %></div>
+      <div><%= s.descripcion %></div>
+      <% if (dir || s.autor_id === user.id) { %>
+        <form class="inline" method="post" action="/alumnos/<%= a.id %>/seguimiento/<%= s.id %>/eliminar" data-confirm="¿Eliminar esta anotación?">
+          <%- include('../partials/csrf') %><button class="btn-link">Eliminar</button></form>
+      <% } %>
+    </li>
+    <% }) %>
+  </ul>
+  <% } %>
+</section>
+<% } %>
+<%- include('../partials/foot') %>

@@ -1,0 +1,38 @@
+<%- include('../partials/head') %>
+<div class="cabecera">
+  <div><h1>Hola, <%= user.nombre %></h1><p class="muted">Seguimiento escolar de tus hijos · <%= trimestre %>º trimestre</p></div>
+  <div class="acciones"><a class="btn" href="/mensajes/nuevo">Escribir al centro</a><a class="btn" href="/perfil">Mis datos de contacto</a></div>
+</div>
+<% if (!hijos.length) { %>
+  <div class="aviso aviso-info">No hay alumnos vinculados a tu cuenta. Contacta con la secretaría del centro.</div>
+<% } %>
+<div class="rejilla">
+<% hijos.forEach(a => { const as = a.asistencia; %>
+  <section class="tarjeta">
+    <div class="cabecera">
+      <div><h2><a href="/alumnos/<%= a.id %>"><%= a.nombre %> <%= a.apellidos %></a></h2>
+        <small><%= a.clase || 'Sin clase asignada' %> · <%= h.edad(a.fecha_nacimiento) %> años</small></div>
+    </div>
+    <dl class="datos">
+      <dt>Tutor/a</dt><dd><%= a.tutor_nombre ? a.tutor_nombre + ' ' + a.tutor_apellidos : '—' %>
+        <% if (a.tutor_clase_id) { %> · <a href="/mensajes/nuevo?para=<%= a.tutor_clase_id %>&alumno=<%= a.id %>">Escribir</a><% } %></dd>
+      <dt>Asistencia</dt><dd><%= h.porcentaje(as.porcentaje) %> · <%= as.faltas || 0 %> faltas, <%= as.retrasos || 0 %> retrasos, <%= as.justificadas || 0 %> justificadas</dd>
+      <dt>Media <%= trimestre %>º trim.</dt><dd class="<%= h.claseNota(a.media) %>"><%= h.formatoNota(a.media) %> <small><%= h.calificacion(a.media) %></small></dd>
+    </dl>
+    <h3 class="mt">Últimas notas</h3>
+    <% if (!a.ultimasNotas.length) { %><p class="vacio">Sin calificaciones todavía.</p><% } else { %>
+      <table><tbody><% a.ultimasNotas.forEach(n => { %>
+        <tr><td><%= n.asignatura %><br><small><%= n.descripcion %> · <%= h.fecha(n.fecha) %></small></td><td class="num <%= h.claseNota(n.nota) %>"><%= h.formatoNota(n.nota) %></td></tr>
+      <% }) %></tbody></table>
+    <% } %>
+    <% if (a.seguimiento.length) { %>
+      <h3 class="mt">Observaciones recientes</h3>
+      <ul class="timeline"><% a.seguimiento.forEach(s => { %>
+        <li><span class="tag tag-<%= s.tipo %>"><%= h.TIPOS_SEGUIMIENTO[s.tipo] %></span> <strong><%= s.titulo %></strong><div class="meta"><%= h.fecha(s.fecha) %></div></li>
+      <% }) %></ul>
+    <% } %>
+    <p class="mt"><a class="btn btn-peq" href="/alumnos/<%= a.id %>">Ver ficha completa</a> <a class="btn btn-peq" href="/alumnos/<%= a.id %>/boletin">Boletín de notas</a></p>
+  </section>
+<% }) %>
+</div>
+<%- include('../partials/foot') %>

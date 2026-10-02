@@ -1,0 +1,31 @@
+<%- include('../partials/head') %>
+<% const a = alumno; %>
+<div class="cabecera no-imprimir">
+  <div><a href="/alumnos/<%= a.id %>?tab=notas">← Volver a la ficha</a></div>
+  <button class="btn btn-primario" data-imprimir>Imprimir</button>
+</div>
+<section class="tarjeta">
+  <h1>Boletín de calificaciones</h1>
+  <dl class="datos">
+    <dt>Alumno/a</dt><dd><strong><%= a.nombre %> <%= a.apellidos %></strong></dd>
+    <dt>Nº expediente</dt><dd><%= a.numero_expediente %></dd>
+    <dt>Clase</dt><dd><%= a.clase || '—' %></dd>
+    <dt>Tutor/a</dt><dd><%= tutorClase ? tutorClase.nombre + ' ' + tutorClase.apellidos : '—' %></dd>
+    <dt>Fecha de emisión</dt><dd><%= h.fecha(h.hoy()) %></dd>
+  </dl>
+</section>
+<section class="tarjeta">
+  <h2>Calificaciones</h2>
+  <%- include('_tabla_boletin', { boletin }) %>
+  <p class="muted mt">Escala: Insuficiente (&lt;5) · Suficiente (5) · Bien (6) · Notable (7-8) · Sobresaliente (9-10). La media trimestral es la media ponderada de las evaluaciones, salvo que exista una nota final.</p>
+</section>
+<section class="tarjeta">
+  <h2>Asistencia</h2>
+  <dl class="datos">
+    <dt>Porcentaje de asistencia</dt><dd><%= h.porcentaje(resumen.porcentaje) %></dd>
+    <dt>Faltas sin justificar</dt><dd><%= resumen.faltas || 0 %></dd>
+    <dt>Faltas justificadas</dt><dd><%= resumen.justificadas || 0 %></dd>
+    <dt>Retrasos</dt><dd><%= resumen.retrasos || 0 %></dd>
+  </dl>
+</section>
+<%- include('../partials/foot') %>

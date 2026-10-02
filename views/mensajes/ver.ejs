@@ -1,0 +1,15 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><div><a href="/mensajes">← Mensajes</a><h1><%= m.asunto %></h1></div>
+  <% if (puedeResponder && m.remitente_id !== user.id) { %>
+    <a class="btn btn-primario" href="/mensajes/nuevo?para=<%= m.remitente_id %><%= m.alumno_id ? '&alumno=' + m.alumno_id : '' %>&asunto=<%= encodeURIComponent(m.asunto.startsWith('Re: ') ? m.asunto : 'Re: ' + m.asunto) %>">Responder</a>
+  <% } %></div>
+<section class="tarjeta">
+  <dl class="datos">
+    <dt>De</dt><dd><%= m.rem_nombre %> <%= m.rem_apellidos %> <small>(<%= h.ROLES[m.rem_rol] %>)</small></dd>
+    <dt>Para</dt><dd><%= m.dest_nombre %> <%= m.dest_apellidos %> <small>(<%= h.ROLES[m.dest_rol] %>)</small></dd>
+    <% if (m.alumno_id) { %><dt>Alumno</dt><dd><a href="/alumnos/<%= m.alumno_id %>"><%= m.alumno_nombre %> <%= m.alumno_apellidos %></a></dd><% } %>
+    <dt>Fecha</dt><dd><%= h.fechaHora(m.creado_en) %></dd>
+  </dl>
+  <div class="mensaje-cuerpo mt"><%= m.cuerpo %></div>
+</section>
+<%- include('../partials/foot') %>

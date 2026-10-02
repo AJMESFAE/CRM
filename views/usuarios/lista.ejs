@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<% const titulos = { profesor: 'Profesorado', tutor: 'Padres y tutores legales', direccion: 'Equipo directivo' }; %>
+<div class="cabecera">
+  <div><h1><%= titulos[rol] %></h1><p class="muted"><%= usuarios.length %> usuario(s)</p></div>
+  <a class="btn btn-primario" href="/usuarios/nuevo?rol=<%= rol %>">+ Nuevo</a>
+</div>
+<nav class="pestanas">
+  <% Object.entries(titulos).forEach(([k, l]) => { %><a href="/usuarios?rol=<%= k %>" class="<%= rol === k ? 'activo' : '' %>"><%= l %></a><% }) %>
+</nav>
+<form class="filtros" method="get">
+  <input type="hidden" name="rol" value="<%= rol %>">
+  <label>Buscar <input type="search" name="q" value="<%= q %>" placeholder="Nombre, email o DNI"></label>
+  <button class="btn">Buscar</button>
+</form>
+<section class="tarjeta">
+  <% if (!usuarios.length) { %><p class="vacio">No hay usuarios.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th>
+      <% if (rol === 'profesor') { %><th>Especialidad</th><th>Tutoría</th><th class="num">Asignaturas</th><% } %>
+      <% if (rol === 'tutor') { %><th>Hijos / tutelados</th><% } %>
+      <% if (rol === 'direccion') { %><th>Cargo</th><% } %>
+      <th>Último acceso</th></tr></thead>
+    <tbody><% usuarios.forEach(u => { %>
+      <tr>
+        <td><a href="/usuarios/<%= u.id %>"><strong><%= u.apellidos %>, <%= u.nombre %></strong></a><% if (!u.activo) { %> <span class="tag tag-ausente">Inactivo</span><% } %></td>
+        <td><%= u.email %></td><td><%= u.telefono || '—' %></td>
+        <% if (rol === 'profesor') { %><td><%= u.especialidad || '—' %></td><td><%= u.tutorias || '—' %></td><td class="num"><%= u.num_asignaturas %></td><% } %>
+        <% if (rol === 'tutor') { %><td><%= u.hijos || '—' %></td><% } %>
+        <% if (rol === 'direccion') { %><td><%= u.cargo || '—' %></td><% } %>
+        <td><small><%= u.ultimo_acceso ? h.fechaHora(u.ultimo_acceso) : 'Nunca' %></small></td>
+      </tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

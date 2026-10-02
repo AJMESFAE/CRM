@@ -1,0 +1,53 @@
+<%- include('../partials/head') %>
+<div class="cabecera">
+  <div><h1>Hola, <%= user.nombre %></h1><p class="muted">Hoy es <%= h.fecha(fechaHoy) %></p></div>
+  <div class="acciones"><a class="btn btn-primario" href="/asistencia">Pasar lista</a><a class="btn" href="/notas">Poner notas</a></div>
+</div>
+
+<section class="tarjeta">
+  <h2>Mis clases</h2>
+  <% if (!clases.length) { %><p class="vacio">Todavía no tienes clases asignadas. Contacta con Dirección.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Clase</th><th>Rol</th><th class="num">Alumnos</th><th>Asistencia de hoy</th><th></th></tr></thead>
+    <tbody>
+    <% clases.forEach(c => { %>
+      <tr>
+        <td><a href="/clases/<%= c.id %>"><strong><%= c.nombre %></strong></a><br><small><%= c.curso_academico %><%= c.aula ? ' · Aula ' + c.aula : '' %></small></td>
+        <td><%= c.soy_tutor ? 'Tutor/a del grupo' : 'Profesor/a' %></td>
+        <td class="num"><%= c.num_alumnos %></td>
+        <td><% if (c.registrados_hoy) { %><span class="tag tag-presente">Registrada</span><% } else { %><span class="tag tag-retraso">Pendiente</span><% } %></td>
+        <td class="num"><a class="btn btn-peq" href="/asistencia?clase=<%= c.id %>">Pasar lista</a></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+  <% } %>
+</section>
+
+<div class="rejilla">
+  <section class="tarjeta">
+    <h2>Mis asignaturas</h2>
+    <% if (!asignaturas.length) { %><p class="vacio">No impartes asignaturas.</p><% } else { %>
+      <ul><% asignaturas.forEach(a => { %><li><%= a.asignatura %> · <%= a.clase %></li><% }) %></ul>
+      <a href="/notas">Ir a calificaciones →</a>
+    <% } %>
+  </section>
+  <section class="tarjeta">
+    <h2>Justificaciones de las familias</h2>
+    <% if (!pendientes.length) { %><p class="vacio">No hay justificaciones pendientes.</p><% } else { %>
+      <ul class="timeline">
+      <% pendientes.forEach(p => { %>
+        <li><a href="/alumnos/<%= p.alumno_id %>?tab=asistencia"><%= p.nombre %> <%= p.apellidos %></a> <span class="tag tag-<%= p.estado %>"><%= h.ESTADOS_ASISTENCIA[p.estado] %></span>
+          <div class="meta"><%= h.fecha(p.fecha) %> · <%= p.clase %></div><div>“<%= p.motivo_familia %>”</div></li>
+      <% }) %>
+      </ul>
+      <a href="/asistencia/justificaciones">Revisar →</a>
+    <% } %>
+  </section>
+</div>
+
+<section class="tarjeta mt">
+  <h2>Mis últimas anotaciones de seguimiento</h2>
+  <%- include('../seguimiento/_timeline', { anotaciones: ultimos, mostrarAlumno: true }) %>
+</section>
+<%- include('../partials/foot') %>

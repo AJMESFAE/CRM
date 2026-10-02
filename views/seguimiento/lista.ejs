@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><div><h1>Seguimiento</h1><p class="muted">Observaciones, incidencias y tutorías registradas</p></div></div>
+<form class="filtros" method="get">
+  <label>Tipo <select name="tipo" data-autosubmit>
+    <option value="">Todos</option>
+    <% Object.entries(TIPOS_SEGUIMIENTO).forEach(([k, v]) => { %><option value="<%= k %>" <%= tipo === k ? 'selected' : '' %>><%= v %></option><% }) %>
+  </select></label>
+  <noscript><button class="btn">Filtrar</button></noscript>
+</form>
+<section class="tarjeta">
+  <p class="muted">Para añadir una anotación, abre la ficha del alumno → pestaña «Seguimiento».</p>
+  <%- include('_timeline', { anotaciones, mostrarAlumno: true }) %>
+</section>
+<%- include('../partials/foot') %>

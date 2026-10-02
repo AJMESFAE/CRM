@@ -1,0 +1,13 @@
+<% if (!boletin.length) { %><p class="vacio">Sin asignaturas ni calificaciones.</p><% } else { %>
+<div class="tabla-wrap"><table>
+  <thead><tr><th>Asignatura</th><th class="num">1er trimestre</th><th class="num">2º trimestre</th><th class="num">3er trimestre</th><th class="num">Media del curso</th><th>Calificación</th></tr></thead>
+  <tbody><% boletin.forEach(b => { %>
+    <tr>
+      <td><strong><%= b.nombre %></strong></td>
+      <% b.trimestres.forEach(t => { %><td class="num <%= h.claseNota(t.media) %>"><%= h.formatoNota(t.media) %></td><% }) %>
+      <td class="num <%= h.claseNota(b.mediaCurso) %>"><%= h.formatoNota(b.mediaCurso) %></td>
+      <td><%= h.calificacion(b.mediaCurso) %></td>
+    </tr>
+  <% }) %></tbody>
+</table></div>
+<% } %>

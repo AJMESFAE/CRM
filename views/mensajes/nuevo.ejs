@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><h1>Nuevo mensaje</h1></div>
+<% if (error) { %><div class="aviso aviso-error"><%= error %></div><% } %>
+<form method="post" action="/mensajes" class="form tarjeta">
+  <%- include('../partials/csrf') %>
+  <div class="fila">
+    <label>Para <select name="destinatario_id" required><option value="">Selecciona…</option>
+      <% let grupo = null; destinatarios.forEach(d => { if (d.rol !== grupo) { if (grupo) { %></optgroup><% } grupo = d.rol; %><optgroup label="<%= h.ROLES[d.rol] %>"><% } %>
+        <option value="<%= d.id %>" <%= para === d.id ? 'selected' : '' %>><%= d.apellidos %>, <%= d.nombre %></option>
+      <% }); if (grupo) { %></optgroup><% } %>
+    </select></label>
+    <label>Sobre el alumno (opcional) <select name="alumno_id"><option value="">—</option>
+      <% alumnos.forEach(a => { %><option value="<%= a.id %>" <%= alumnoId === a.id ? 'selected' : '' %>><%= a.apellidos %>, <%= a.nombre %><%= a.clase ? ' (' + a.clase + ')' : '' %></option><% }) %></select></label>
+  </div>
+  <label>Asunto <input name="asunto" required maxlength="150" value="<%= asunto %>"></label>
+  <label>Mensaje <textarea name="cuerpo" required maxlength="5000" rows="8"><%= typeof cuerpo !== 'undefined' ? cuerpo : '' %></textarea></label>
+  <div class="acciones"><button class="btn btn-primario">Enviar</button><a class="btn" href="/mensajes">Cancelar</a></div>
+</form>
+<%- include('../partials/foot') %>

@@ -1,0 +1,18 @@
+<%- include('../partials/head') %>
+<div class="cabecera">
+  <div><h1><%= user.rol === 'direccion' ? 'Clases' : 'Mis clases' %></h1></div>
+  <% if (user.rol === 'direccion') { %><a class="btn btn-primario" href="/clases/nueva">+ Nueva clase</a><% } %>
+</div>
+<section class="tarjeta">
+  <% if (!clases.length) { %><p class="vacio">No hay clases.</p><% } else { %>
+  <div class="tabla-wrap"><table>
+    <thead><tr><th>Clase</th><th>Curso</th><th>Etapa</th><th>Aula</th><th>Tutor/a</th><th class="num">Alumnos</th><th class="num">Asignaturas</th></tr></thead>
+    <tbody><% clases.forEach(c => { %>
+      <tr><td><a href="/clases/<%= c.id %>"><strong><%= c.nombre %></strong></a></td><td><%= c.curso_academico %></td><td><%= c.etapa %></td>
+        <td><%= c.aula || '—' %></td><td><%= c.tutor_nombre ? c.tutor_nombre + ' ' + c.tutor_apellidos : 'Sin asignar' %></td>
+        <td class="num"><%= c.num_alumnos %></td><td class="num"><%= c.num_asignaturas %></td></tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

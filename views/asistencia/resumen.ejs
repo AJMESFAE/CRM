@@ -1,0 +1,21 @@
+<%- include('../partials/head') %>
+<div class="cabecera"><div><h1>Resumen de asistencia</h1><p class="muted">F = falta · R = retraso · J = justificada · · = presente</p></div>
+  <a class="btn" href="/asistencia<%= claseId ? '?clase=' + claseId : '' %>">Pasar lista</a></div>
+<form class="filtros" method="get">
+  <label>Clase <select name="clase"><% clases.forEach(c => { %><option value="<%= c.id %>" <%= claseId === c.id ? 'selected' : '' %>><%= c.nombre %></option><% }) %></select></label>
+  <label>Mes <input type="month" name="mes" value="<%= mes %>"></label>
+  <button class="btn">Ver</button>
+</form>
+<section class="tarjeta">
+  <% if (!filas.length) { %><p class="vacio">No hay datos.</p><% } else { const sim = { presente: '·', ausente: 'F', retraso: 'R', justificada: 'J' }; %>
+  <div class="tabla-wrap"><table class="mes">
+    <thead><tr><th>Alumno</th><% dias.forEach(d => { %><th><%= d.dia %></th><% }) %><th>F</th><th>J</th><th>R</th><th>%</th></tr></thead>
+    <tbody><% filas.forEach(f => { %>
+      <tr><td class="nowrap"><a href="/alumnos/<%= f.id %>?tab=asistencia"><%= f.apellidos %>, <%= f.nombre %></a></td>
+        <% dias.forEach(d => { const e = f.porFecha[d.fecha]; %><td class="<%= e ? 'c-' + e : '' %>"><%= e ? sim[e] : '' %></td><% }) %>
+        <td><strong><%= f.faltas %></strong></td><td><%= f.justificadas %></td><td><%= f.retrasos %></td><td><%= h.porcentaje(f.porcentaje) %></td></tr>
+    <% }) %></tbody>
+  </table></div>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>
